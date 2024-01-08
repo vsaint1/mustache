@@ -10,8 +10,8 @@ PYBIND11_MODULE(mustache, handle) {
   handle.doc() = "pybind11 example plugin";
   handle.def("test_sum", &python_sum, "A function which adds two numbers");
 
-  pybind11::class_<Memory>(handle,"Memory")
+  pybind11::class_<Memory>(handle, "Memory")
       .def(pybind11::init<const std::string_view>(), pybind11::arg("process_name"))
-      .def("get_process_id", &Memory::getProcessId,pybind11::return_value_policy::reference);
-
+      .def("get_process_id", &Memory::getProcessId, pybind11::return_value_policy::reference)
+      .def("get_module_data", &Memory::getModuleData, pybind11::return_value_policy::reference);
 }
