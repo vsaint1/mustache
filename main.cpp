@@ -1,5 +1,4 @@
 #include "src/memory/memory.h"
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -13,5 +12,8 @@ PYBIND11_MODULE(mustache, handle) {
   pybind11::class_<Memory>(handle, "Memory")
       .def(pybind11::init<const std::string_view>(), pybind11::arg("process_name"))
       .def("get_process_id", &Memory::getProcessId, pybind11::return_value_policy::reference)
-      .def("get_module_data", &Memory::getModuleData, pybind11::return_value_policy::reference);
+      .def("get_module_data", &Memory::getModuleData, pybind11::return_value_policy::reference)
+      .def("get_module_base", &Memory::getModuleBase, pybind11::return_value_policy::reference)
+      .def("read_ptr", &Memory::readv<uintptr_t>, pybind11::return_value_policy::reference)
+      .def("read_int", &Memory::readv<int>, pybind11::return_value_policy::reference);
 }
