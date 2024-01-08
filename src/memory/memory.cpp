@@ -1,5 +1,19 @@
 #include "memory.h"
 
+#include <stdexcept>
+
+Memory::Memory(const std::string_view processName) {
+
+  this->readVirtual = reinterpret_cast<pNtReadVirtualMemory>(GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory"));
+  this->writeVirtual = reinterpret_cast<pNtWriteVirtualMemory>(GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory"));
+
+  this->processId(processName);
+
+  if (!this->attachProcess())
+    throw std::runtime_error("Failed to attach to process");
+
+}
+
 void Memory::processId(std::string_view processName) {
   PROCESSENTRY32 pe32;
   pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -17,6 +31,21 @@ void Memory::processId(std::string_view processName) {
 
   if (hSnapshot)
     CloseHandle(hSnapshot);
+}
+
+bool Memory::attachProcess() {
+
+  if (!this->m_processId)
+    return false;
+
+  void *handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->m_processId);
+
+  if (!handle)
+    return false;
+
+  this->m_handle = handle;
+
+  return true;
 }
 
 std::optional<std::pair<uintptr_t, uintptr_t>> Memory::getModuleData(std::string_view moduleName) {
