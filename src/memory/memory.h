@@ -1,13 +1,14 @@
 #pragma once
+#define WIN32_LEAN_AND_MEAN
+#include <TlHelp32.h>
+#include <Windows.h>
 #include <optional>
 #include <string_view>
 
-typedef unsigned long ULONG;
-typedef unsigned long* PULONG;
 typedef _Return_type_success_(return >= 0) long NTSTATUS;
 
-typedef NTSTATUS(__stdcall *pNtReadVirtualMemory)(void* ProcessHandle, void* BaseAddress,  void* Buffer, ULONG NumberOfBytesToRead, PULONG NumberOfBytesRead);
-typedef NTSTATUS(__stdcall *pNtWriteVirtualMemory)( void* Processhandle,  void* BaseAddress,  void* Buffer, ULONG NumberOfBytesToWrite, PULONG NumberOfBytesWritten);
+typedef NTSTATUS(__stdcall *pNtReadVirtualMemory)(void *ProcessHandle, void *BaseAddress, void *Buffer, unsigned long NumberOfBytesToRead, unsigned long *NumberOfBytesRead);
+typedef NTSTATUS(__stdcall *pNtWriteVirtualMemory)(void *Processhandle, void *BaseAddress, void *Buffer, unsigned long NumberOfBytesToWrite, unsigned long *NumberOfBytesWritten);
 
 class Memory {
   pNtReadVirtualMemory readVirtual;
@@ -32,7 +33,7 @@ public:
 
   template <typename T> T readv(uintptr_t address) {
     T buffer;
-    NTSTATUS(readVirtual(m_handle, reinterpret_cast<void *>(address), &buffer, sizeof(T), nullptr));
+    readVirtual(m_handle, reinterpret_cast<void *>(address), &buffer, sizeof(T), nullptr);
     return buffer;
   }
 
@@ -45,6 +46,8 @@ public:
       str += c;
       address++;
     } while (c != '\0');
+
+    return str;
   }
 
 private:
