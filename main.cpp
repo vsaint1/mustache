@@ -2,12 +2,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-float python_sum(float arg1, float arg2) { return arg1 + arg2; }
+// python bindings
 
 PYBIND11_MODULE(mustache, handle) {
 
-  handle.doc() = "pybind11 example plugin";
-  handle.def("test_sum", &python_sum, "A function which adds two numbers");
+  handle.doc() = "CPython API for memory and process access.";
 
   pybind11::class_<Memory>(handle, "Memory")
       .def(pybind11::init<const std::string_view>(), pybind11::arg("process_name"))
@@ -15,5 +14,8 @@ PYBIND11_MODULE(mustache, handle) {
       .def("get_module_data", &Memory::getModuleData, pybind11::return_value_policy::reference)
       .def("get_module_base", &Memory::getModuleBase, pybind11::return_value_policy::reference)
       .def("read_ptr", &Memory::readv<uintptr_t>, pybind11::return_value_policy::reference)
+      .def("read_bool", &Memory::readv<bool>)
+      .def("read_float", &Memory::readv<float>)
+      .def("read_str", &Memory::read_str)
       .def("read_int", &Memory::readv<int>, pybind11::return_value_policy::reference);
 }
