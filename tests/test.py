@@ -4,7 +4,7 @@ from build import mustache
 
 mm = mustache.Memory("cs2.exe",None)
 
-module_data = mm.get_module_data("client.dll")
+module_data = mm.get_module_info("client.dll")
 
 print(f"ProcessId: {mm.get_process_id()}")
 print(f"ModuleBase: {module_data[0]} ModuleSize: {module_data[1]}")
