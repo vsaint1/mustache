@@ -13,7 +13,7 @@ PYBIND11_MODULE(mustache, handle) {
 
 
   pybind11::class_<Memory>(handle, "Memory")
-      .def(pybind11::init<const std::string_view, ACCESS_LEVEL>(), pybind11::arg("process_name"), pybind11::arg("access_level"))
+      .def(pybind11::init<const std::string_view, ACCESS_LEVEL>(), pybind11::arg("process_name"), pybind11::arg("access_level") = ACCESS_LEVEL::READ_ONLY)
       .def("find_signature",&Memory::findPattern, pybind11::arg("module_name"), pybind11::arg("pattern"))
       .def("get_process_id", &Memory::getProcessId, pybind11::return_value_policy::reference)
       .def("get_module_info", &Memory::getModuleInfo, pybind11::return_value_policy::reference)
