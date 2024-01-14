@@ -7,10 +7,12 @@
 
 namespace math {
 
-struct ViewMatrix {
+class ViewMatrix {
+public:
+  float matrix[4][4]; // or matrix[16]
+
   float *operator[](int index) { return matrix[index]; }
 
-  float matrix[4][4];
 };
 
 class Vector {
@@ -34,6 +36,7 @@ public:
   constexpr const bool operator<(const Vector &other) const noexcept { return x < other.x && y < other.y && z < other.z; }
 
   constexpr const bool operator<=(const Vector &other) const noexcept { return x <= other.x && y <= other.y && z <= other.z; }
+
   constexpr const bool operator==(const Vector &other) const noexcept { return x == other.x && y == other.y && z == other.z; }
 
   double distance(const Vector &other) const noexcept { return sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2)); }
