@@ -40,7 +40,25 @@ public:
 
   constexpr bool isZero() const noexcept { return x == 0 && y == 0 && z == 0; }
 
+  // vm: view_matrix, int: window_width, int: window_height
+  Vector worldToScreen(ViewMatrix matrix, int ww, int wh) {
+    float _x = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2] * z + matrix[0][3];
+    float _y = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2] * z + matrix[1][3];
 
+    float w = matrix[3][0] * x + matrix[3][1] * y + matrix[3][2] * z + matrix[3][3];
+
+    float inv_w = 1.f / w;
+    _x *= inv_w;
+    _y *= inv_w;
+
+    float screen_x = ww * 0.5f;
+    float screen_y = wh * 0.5f;
+
+    screen_x += 0.5f * _x * ww + 0.5f;
+    screen_y -= 0.5f * _y * wh + 0.5f;
+
+    return {screen_x, screen_y, w};
+  }
 };
 
 float radToDeg(float x) { return x * 180 / M_PI; }

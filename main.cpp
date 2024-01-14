@@ -15,6 +15,7 @@ PYBIND11_MODULE(mustache, handle) {
       .def(pybind11::init<>())
       .def(pybind11::init<float, float, float>())
       .def(pybind11::init<const math::Vector &>())
+      .def("world_to_screen", &math::Vector::worldToScreen, pybind11::arg("view_matrix"), pybind11::arg("window_width"), pybind11::arg("window_height"))
       .def("distance", &math::Vector::distance, pybind11::arg("other"))
       .def("is_zero", &math::Vector::isZero);
 
