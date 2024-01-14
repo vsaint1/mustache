@@ -1,14 +1,24 @@
 #pragma once
-#define WIN32_LEAN_AND_MEAN
-#include <TlHelp32.h>
+#include "../utils/helper_macros.h"
 #include <Windows.h>
+#include <TlHelp32.h>
+#include <charconv>
+#include <memory>
 #include <optional>
-#include <string_view>
+#include <string>
+#include <vector>
 
 typedef _Return_type_success_(return >= 0) long NTSTATUS;
 
 typedef NTSTATUS(__stdcall *pNtReadVirtualMemory)(void *ProcessHandle, void *BaseAddress, void *Buffer, unsigned long NumberOfBytesToRead, unsigned long *NumberOfBytesRead);
 typedef NTSTATUS(__stdcall *pNtWriteVirtualMemory)(void *Processhandle, void *BaseAddress, void *Buffer, unsigned long NumberOfBytesToWrite, unsigned long *NumberOfBytesWritten);
+
+enum ACCESS_LEVEL {
+  READ_ONLY = PROCESS_VM_READ,
+  READ_WRITE = PROCESS_VM_READ  | PROCESS_VM_WRITE,
+  ALL_ACCESS =  PROCESS_ALL_ACCESS
+
+};
 
 class Memory {
   pNtReadVirtualMemory readVirtual;
@@ -17,9 +27,10 @@ class Memory {
   uintptr_t m_moduleBase;
   uintptr_t m_moduleSize;
   unsigned int m_processId;
+  ACCESS_LEVEL  m_accessLevel;
 
 public:
-  explicit Memory(std::string_view processName);
+  explicit Memory(std::string_view processName,ACCESS_LEVEL accessLevel = READ_ONLY);
 
   unsigned int getProcessId() const { return this->m_processId; }
 
@@ -27,7 +38,7 @@ public:
 
   uintptr_t getModuleSize() const { return this->m_moduleSize; }
 
-  std::optional<std::pair<uintptr_t, uintptr_t>> getModuleData(std::string_view moduleName);
+  std::pair<std::optional<uintptr_t>, std::optional<uintptr_t>> getModuleInfo(std::string_view moduleName);
 
   void processId(std::string_view processName);
 
@@ -37,19 +48,12 @@ public:
     return buffer;
   }
 
-  std::string read_str(uintptr_t address) {
-    std::string str;
-    char c;
+  std::string readString(uintptr_t address);
 
-    do {
-      c = this->readv<char>(address);
-      str += c;
-      address++;
-    } while (c != '\0');
-
-    return str;
-  }
+  std::optional<uintptr_t> findPattern(const std::string_view &moduleName, const std::string_view &pattern);
 
 private:
-  bool attachProcess();
+  bool read_raw(const uintptr_t address, void *buffer, uintptr_t size);
+
+  bool attachProcess(ACCESS_LEVEL accessLevel);
 };
