@@ -1,17 +1,18 @@
 #include "memory.h"
 
-#include <stdexcept>
-
-Memory::Memory(const std::string_view processName) {
+Memory::Memory(const std::string_view processName, ACCESS_LEVEL accessLevel) {
 
   this->readVirtual = reinterpret_cast<pNtReadVirtualMemory>(GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory"));
   this->writeVirtual = reinterpret_cast<pNtWriteVirtualMemory>(GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory"));
 
   this->processId(processName);
 
-  if (!this->attachProcess())
-    throw std::runtime_error("Failed to attach to process");
+  if (!this->attachProcess(accessLevel)) {
+    LOG("Failed to attach to process");
+    exit(EXIT_FAILURE);
+  }
 
+  LOG("Attached to process");
 }
 
 void Memory::processId(std::string_view processName) {
@@ -33,22 +34,113 @@ void Memory::processId(std::string_view processName) {
     CloseHandle(hSnapshot);
 }
 
-bool Memory::attachProcess() {
+std::string Memory::readString(uintptr_t address) {
+  std::string str;
+  char c;
+
+  do {
+    c = this->readv<char>(address);
+    str += c;
+    address++;
+  } while (c != '\0');
+
+  return str;
+}
+
+std::optional<uintptr_t> Memory::findPattern(const std::string_view &moduleName, const std::string_view &pattern) {
+  {
+    constexpr auto pattern_to_bytes = [](const std::string_view &pattern) {
+      std::vector<int32_t> bytes;
+
+      for (auto i{0}; i < pattern.size(); ++i) {
+        switch (pattern[i]) {
+        case '?':
+          bytes.push_back(-1);
+          break;
+
+        case ' ':
+          break;
+
+        default: {
+          if (i + 1 < pattern.size()) {
+            auto value{0};
+
+            if (const auto [ptr, ec] = std::from_chars(pattern.data() + i, pattern.data() + i + 2, value, 16); ec == std::errc()) {
+              bytes.push_back(value);
+              ++i;
+            }
+          }
+
+          break;
+        }
+        }
+      }
+
+      return bytes;
+    };
+
+    const auto [module_base, module_size] = this->getModuleInfo(moduleName);
+
+    if (!module_base.has_value() || !module_size.has_value())
+      return {};
+
+    const auto module_data = std::make_unique<uint8_t[]>(module_size.value());
+
+    if (!this->read_raw(module_base.value(), module_data.get(), module_size.value()))
+      return {};
+
+    const auto pattern_bytes = pattern_to_bytes(pattern);
+    for (auto i{0}; i < module_size.value() - pattern.size(); ++i) {
+      auto found{true};
+
+      for (auto j{0}; j < pattern_bytes.size(); ++j) {
+        if (module_data[i + j] != pattern_bytes[j] && pattern_bytes[j] != -1) {
+          found = false;
+          break;
+        }
+      }
+
+      if (found)
+        return module_base.value() + i;
+    }
+
+    return {};
+  }
+}
+bool Memory::read_raw(const uintptr_t address, void *buffer, uintptr_t size) {
+  this->readVirtual(this->m_handle, reinterpret_cast<void *>(address), buffer, size, nullptr);
+  return true;
+}
+
+bool Memory::attachProcess(ACCESS_LEVEL accessLevel) {
 
   if (!this->m_processId)
     return false;
 
-  void *handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->m_processId);
+  switch (accessLevel) {
+  case ACCESS_LEVEL::READ_ONLY:
+    this->m_accessLevel = ACCESS_LEVEL::READ_ONLY;
+  case ACCESS_LEVEL::READ_WRITE:
+    this->m_accessLevel = ACCESS_LEVEL::READ_WRITE;
+  case ACCESS_LEVEL::ALL_ACCESS:
+    this->m_accessLevel = ACCESS_LEVEL::ALL_ACCESS;
+  default:
+    this->m_accessLevel = ACCESS_LEVEL::READ_ONLY;
+  }
+
+  void *handle = OpenProcess(this->m_accessLevel, FALSE, this->m_processId);
 
   if (!handle)
     return false;
 
   this->m_handle = handle;
 
+  LOG("Attached on pid %d, handle %p with accessLevel %d ",this->m_processId, this->m_handle, this->m_accessLevel);
+
   return true;
 }
 
-std::optional<std::pair<uintptr_t, uintptr_t>> Memory::getModuleData(std::string_view moduleName) {
+std::pair<std::optional<uintptr_t>, std::optional<uintptr_t>> Memory::getModuleInfo(std::string_view moduleName) {
   MODULEENTRY32 me32;
   me32.dwSize = sizeof(MODULEENTRY32);
 
