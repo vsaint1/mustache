@@ -1,5 +1,7 @@
 #include "src/math/math.h"
 #include "src/memory/memory.h"
+#include "src/mouse/mouse.h"
+#include "src/mouse/key_state.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -34,6 +36,13 @@ PYBIND11_MODULE(mustache, handle) {
 
   // py-enum
   pybind11::enum_<ACCESS_LEVEL>(handle, "ACCESS_LEVEL").value("READ", ACCESS_LEVEL::READ_ONLY).value("WRITE", ACCESS_LEVEL::READ_WRITE).value("ALL", ACCESS_LEVEL::ALL_ACCESS);
+
+  // py-mouse
+  handle.def("mouse_move", &mouse_event, pybind11::arg("flags"), pybind11::arg("x"), pybind11::arg("y"), pybind11::arg("optional_data"), pybind11::arg("optional_info"));
+
+  handle.def("mouse_click",&mouse_click);
+
+  handle.def("key_pressed",&hotkey::isKeyPressed,pybind11::arg("key"));
 
   // py-memory
   pybind11::class_<Memory>(handle, "Memory")
