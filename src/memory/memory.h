@@ -1,6 +1,5 @@
 #pragma once
 #include "../utils/helper_macros.h"
-#include <Windows.h>
 #include <TlHelp32.h>
 #include <charconv>
 #include <memory>
