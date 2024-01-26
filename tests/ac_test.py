@@ -11,4 +11,5 @@ module_data = mm.get_module_info("ac_client.exe")
 
 lp = mm.read_x86_ptr(mm.get_module_base() + 0x18AC00)
 health = mm.read_int(lp + 0xEC)
-print(f"local_player {lp} and {health}")
+print(f"local_player {hex(lp)} and {health}")
+
