@@ -47,6 +47,11 @@ public:
     return buffer;
   }
 
+  template <typename T>
+  T writev(uintptr_t address, T value){
+    writeVirtual(m_handle, (void*)address, &value, sizeof(T), NULL);
+    return value;
+  }
   std::string readString(uintptr_t address);
 
   std::optional<uintptr_t> findPattern(const std::string_view &moduleName, const std::string_view &pattern);
