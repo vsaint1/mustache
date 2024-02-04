@@ -1,9 +1,10 @@
 #include "src/math/math.h"
 #include "src/memory/memory.h"
-#include "src/mouse/mouse.h"
 #include "src/mouse/key_state.h"
+#include "src/mouse/mouse.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+
 
 PYBIND11_MODULE(mustache, handle) {
 
@@ -40,9 +41,9 @@ PYBIND11_MODULE(mustache, handle) {
   // py-mouse
   handle.def("mouse_move", &mouse_event, pybind11::arg("flags"), pybind11::arg("x"), pybind11::arg("y"), pybind11::arg("optional_data"), pybind11::arg("optional_info"));
 
-  handle.def("mouse_click",&mouse_click);
+  handle.def("mouse_click", &mouse_click);
 
-  handle.def("key_pressed",&hotkey::isKeyPressed,pybind11::arg("key"));
+  handle.def("key_pressed", &hotkey::isKeyPressed, pybind11::arg("key"));
 
   // py-memory
   pybind11::class_<Memory>(handle, "Memory")
@@ -51,11 +52,16 @@ PYBIND11_MODULE(mustache, handle) {
       .def("get_process_id", &Memory::getProcessId, pybind11::return_value_policy::reference)
       .def("get_module_info", &Memory::getModuleInfo, pybind11::return_value_policy::reference)
       .def("get_module_base", &Memory::getModuleBase, pybind11::return_value_policy::reference)
+      .def("write_float",&Memory::writev<float>)
+      .def("write_bool",&Memory::writev<bool>)
       .def("read_view_matrix", &Memory::readv<math::ViewMatrix>)
       .def("read_x86_ptr", &Memory::readv<uint32_t>, pybind11::return_value_policy::reference)
       .def("read_ptr", &Memory::readv<uintptr_t>, pybind11::return_value_policy::reference)
       .def("read_bool", &Memory::readv<bool>)
       .def("read_float", &Memory::readv<float>)
       .def("read_str", &Memory::readString)
+      .def("read_uint", &Memory::readv<std::uint32_t>)
       .def("read_int", &Memory::readv<int>, pybind11::return_value_policy::reference);
+
+
 }
