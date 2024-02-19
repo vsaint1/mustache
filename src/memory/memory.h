@@ -58,6 +58,6 @@ public:
 
 private:
   bool read_raw(const uintptr_t address, void *buffer, uintptr_t size);
-
+  bool runningElevated();
   bool attachProcess(ACCESS_LEVEL accessLevel);
 };
