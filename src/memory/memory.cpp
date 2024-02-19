@@ -1,18 +1,43 @@
 #include "memory.h"
 
+bool Memory::runningElevated() {
+  bool elevated = false;
+  void *token = 0;
+
+  if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token)) {
+    TOKEN_ELEVATION token_elevation;
+    DWORD c_size = sizeof(TOKEN_ELEVATION);
+    if (GetTokenInformation(token, TokenElevation, &token_elevation, sizeof(token_elevation), &c_size)) {
+      elevated = token_elevation.TokenIsElevated;
+    }
+  }
+
+  if (token)
+    CloseHandle(token);
+
+  return elevated;
+}
+
 Memory::Memory(const std::string_view processName, ACCESS_LEVEL accessLevel) {
 
   this->readVirtual = reinterpret_cast<pNtReadVirtualMemory>(GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory"));
   this->writeVirtual = reinterpret_cast<pNtWriteVirtualMemory>(GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory"));
 
+  if (!this->runningElevated())
+    SPDLOG_WARN("Running without ROOT privileges");
+
   this->processId(processName);
 
   if (!this->attachProcess(accessLevel)) {
-    LOG("Failed to attach to process");
+    SPDLOG_ERROR("Failed while trying to attach on process");
+    // TODO: change to SDL SDL_ShowSimpleMessageBox
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "Failed to launch, the PROCESS_NAME[%s] isnt running.", processName);
+    MessageBoxA(0, buffer, "Error", MB_OK | MB_ICONERROR);
     exit(EXIT_FAILURE);
   }
 
-  LOG("Attached to process");
+  SPDLOG_INFO("Attached to process");
 }
 
 void Memory::processId(std::string_view processName) {
@@ -135,7 +160,7 @@ bool Memory::attachProcess(ACCESS_LEVEL accessLevel) {
 
   this->m_handle = handle;
 
-  LOG("Attached on pid %d, handle %p with accessLevel %d ",this->m_processId, this->m_handle, this->m_accessLevel);
+  SPDLOG_INFO("Attached on pid {}, handle {} with accessLevel {} ", this->m_processId, this->m_handle, this->m_accessLevel);
 
   return true;
 }
