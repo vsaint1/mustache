@@ -3,15 +3,16 @@
 #define WIN32_LEAN_AND_MEAN
 #include "Windows.h"
 
+
 #ifdef _DEBUG
-#define LOG(fmt, ...)\
-{\
-const auto filename = strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__;\
-printf("[mustache:%s:%d] - " fmt "\n", filename, __LINE__, __VA_ARGS__);\
-}
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+#include <spdlog/spdlog.h>
 #else
-#define LOG(fmt, ...)\
-{\
-printf("[mustache] - " fmt "\n", __VA_ARGS__);\
-}
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_OFF
+#include <spdlog/spdlog.h>
+
 #endif
+
+bool compare(std::string_view str1, std::string_view str2);
+
+#define EQUALS_IGNORE_CASE(str1, str2) compare(str1,str2)
