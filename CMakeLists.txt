@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.15)
-
 project(mustache VERSION 0.1.0 LANGUAGES CXX C DESCRIPTION "OS library for memory access, Window management and overlay drawing." HOMEPAGE_URL https://github.com/vsaint1/mustache)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
@@ -19,25 +18,43 @@ find_package(SPDLOG REQUIRED)
 find_package(ZLIB REQUIRED)
 
 
-if(JAVA_LIB)
+if(BINDING STREQUAL "java")
 
+
+    add_compile_definitions(JAVA_BINDING=TRUE)
+    
     find_package(JNI REQUIRED)
+
     include_directories(${JNI_INCLUDE_DIRS})
+
+    add_library(${PROJECT_NAME} SHARED ${SOURCES})
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib)
 
 endif()
 
 
-if(PYTHON_LIB)
+if(BINDING STREQUAL "python")
+
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/pybind11)
         message(FATAL_ERROR "Submodule pybind11 not found. Please run `git submodule update --init`")
     endif()
 
+    add_compile_definitions(PYTHON_BINDING=TRUE)
+
     add_subdirectory(external/pybind11)
 
-    pybind11_add_module(${PROJECT_NAME} main.cpp ${SOURCES})
+    pybind11_add_module(${PROJECT_NAME} src/main.cpp ${SOURCES})
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "mustache" SUFFIX ".pyd")
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib)
 
 endif()
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+if(BINDING STREQUAL "dll")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib)
+    add_library(${PROJECT_NAME} SHARED ${SOURCES})
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib)
+endif()
