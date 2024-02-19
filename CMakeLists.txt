@@ -17,12 +17,13 @@ file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 find_package(SPDLOG REQUIRED)
 find_package(ZLIB REQUIRED)
 
+set(BINDING "python") # by default we generate py-bindings
 
 if(BINDING STREQUAL "java")
 
 
     add_compile_definitions(JAVA_BINDING=TRUE)
-    
+
     find_package(JNI REQUIRED)
 
     include_directories(${JNI_INCLUDE_DIRS})
@@ -53,6 +54,8 @@ if(BINDING STREQUAL "python")
 endif()
 
 if(BINDING STREQUAL "dll")
+
+    add_compile_definitions(MUSTACHE_SHARED=TRUE)
 
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
