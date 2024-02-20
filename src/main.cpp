@@ -50,9 +50,16 @@ PYBIND11_MODULE(mustache, handle) {
     handle.def("mouse_move", &mouse_event, pybind11::arg("flags"), pybind11::arg("x"), pybind11::arg("y"),
                pybind11::arg("optional_data"), pybind11::arg("optional_info"));
 
-    handle.def("mouse_click", &mouse_click);
 
     handle.def("key_pressed", &hotkey::isKeyPressed, pybind11::arg("key"));
+
+
+    pybind11::class_<Mouse>(handle, "Mouse")
+            .def(pybind11::init<>())
+            .def("move", &Mouse::move,pybind11::arg("x"), pybind11::arg("y"))
+            .def("click", &Mouse::click)
+            .def("get_pos_x", &Mouse::getMouseX)
+            .def("get_pos_y", &Mouse::getMouseY);
 
     // py-memory
     pybind11::class_<Memory>(handle, "Memory")
