@@ -16,6 +16,8 @@ file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 find_package(SPDLOG REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(SDL2_ttf REQUIRED)
 
 set(BINDING "python") # by default we generate py-bindings
 
@@ -30,7 +32,8 @@ if(BINDING STREQUAL "java")
 
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib sdl_ttf::sdl_ttf SDL2::SDL2main)
+
 
 endif()
 
@@ -49,7 +52,7 @@ if(BINDING STREQUAL "python")
 
     set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "mustache" SUFFIX ".pyd")
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib sdl_ttf::sdl_ttf SDL2::SDL2main)
 
 endif()
 
@@ -59,5 +62,6 @@ if(BINDING STREQUAL "dll")
 
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib sdl_ttf::sdl_ttf SDL2::SDL2main)
+
 endif()
