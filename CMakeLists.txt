@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(mustache VERSION 0.1.0 LANGUAGES CXX C DESCRIPTION "OS library for memory access, Window management and overlay drawing." HOMEPAGE_URL https://github.com/vsaint1/mustache)
+project(mustache VERSION 0.1.0 LANGUAGES CXX C DESCRIPTION "(GHF) - Linux and Windows library for memory access, Window management and overlay drawing." HOMEPAGE_URL https://github.com/vsaint1/mustache)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
@@ -14,12 +14,13 @@ set(CMAKE_C_STANDARD 11)
 
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-find_package(SPDLOG REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_ttf REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
-set(BINDING "python") # by default we generate py-bindings
+
+set(BINDING "${BINDING}" CACHE STRING "Binding type: java, python, dll")
 
 if(BINDING STREQUAL "java")
 
@@ -32,7 +33,9 @@ if(BINDING STREQUAL "java")
 
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib sdl_ttf::sdl_ttf SDL2::SDL2main)
+    target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
+
+    target_link_libraries(${PROJECT_NAME} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json)
 
 
 endif()
@@ -48,11 +51,13 @@ if(BINDING STREQUAL "python")
 
     add_subdirectory(external/pybind11)
 
-    pybind11_add_module(${PROJECT_NAME} src/main.cpp ${SOURCES})
+    pybind11_add_module(${PROJECT_NAME} src/main.cpp ${SOURCES} )
 
     set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "mustache" SUFFIX ".pyd")
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib sdl_ttf::sdl_ttf SDL2::SDL2main)
+    target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
+
+    target_link_libraries(${PROJECT_NAME} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json)
 
 endif()
 
@@ -62,6 +67,7 @@ if(BINDING STREQUAL "dll")
 
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB spdlog::spdlog ntdll.lib sdl_ttf::sdl_ttf SDL2::SDL2main)
+    target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
+    target_link_libraries(${PROJECT_NAME} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json)
 endif()
