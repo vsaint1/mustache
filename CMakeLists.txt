@@ -79,10 +79,10 @@ if(BINDING STREQUAL "dll")
     target_link_libraries(${PROJECT_NAME} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json)
 endif()
 
-if(BINDING STREQUAL "static")
+if(TESTS)
 
     find_package(doctest REQUIRED CONFIG)
-    
+
     enable_testing()
 
     file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
