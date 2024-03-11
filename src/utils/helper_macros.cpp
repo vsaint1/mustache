@@ -10,3 +10,22 @@ bool compare(std::string_view str1, std::string_view str2) {
                return std::tolower(a) == std::tolower(b);
            });
 }
+
+
+std::string generate_random_name(int len) {
+ {
+
+  std::random_device rd;
+  std::mt19937 generator(rd());
+
+  const std::string allowed_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-";
+
+  std::string filename;
+  std::uniform_int_distribution<int> distribution(0, allowed_chars.size() - 1);
+  for (int i = 0; i < len; ++i) 
+    filename += allowed_chars[distribution(generator)];
+
+
+  return filename;
+}
+}

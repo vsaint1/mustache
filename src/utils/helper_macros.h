@@ -2,7 +2,8 @@
 #define UTILS_HELPER_MACROS_H_
 
 #define WIN32_LEAN_AND_MEAN
-#include "Windows.h"
+#include <random>
+#include <string>
 
 #ifdef _DEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
@@ -18,5 +19,12 @@
 
 bool compare(std::string_view str1, std::string_view str2);
 
+std::string generate_random_name(int len);
+
 #define EQUALS_IGNORE_CASE(str1, str2) compare(str1,str2)
+
+#define RANDOM_NAME(len) generate_random_name(len)
+
+#define MUSTACHE_API __declspec(dllexport)
+
 #endif // UTILS_HELPER_MACROS_H_
