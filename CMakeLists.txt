@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(mustache VERSION 0.1.0 LANGUAGES CXX C DESCRIPTION "(GHF) - Linux and Windows library for memory access, Window management and overlay drawing." HOMEPAGE_URL https://github.com/vsaint1/mustache)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/build/generators/conan_toolchain.cmake)
 
@@ -19,8 +19,15 @@ find_package(spdlog REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
+set(BINDING "static")
 
-set(BINDING "${BINDING}" CACHE STRING "Binding type: java, python, dll")
+if(BINDING STREQUAL "static")
+    add_library(${PROJECT_NAME} STATIC ${SOURCES})
+
+    target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
+
+    target_link_libraries(${PROJECT_NAME} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json)
+endif()
 
 if(BINDING STREQUAL "java")
 
@@ -70,4 +77,28 @@ if(BINDING STREQUAL "dll")
     target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
     target_link_libraries(${PROJECT_NAME} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json)
+endif()
+
+if(BINDING STREQUAL "static")
+
+    enable_testing()
+
+    file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+    list(REMOVE_ITEM SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+    file(GLOB_RECURSE test_files ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    foreach(test_file ${test_files})
+        get_filename_component(test_name ${test_file} ${SOURCE} NAME_WE)
+
+        add_executable(${test_name} ${test_file})
+        add_test(NAME ${test_name} COMMAND ${test_name})
+
+        set_property(TARGET ${test_name} PROPERTY FOLDER tests)
+
+        target_include_directories(${test_name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
+
+        target_link_libraries(${test_name} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json mustache)
+
+
+    endforeach()
+
 endif()
