@@ -81,6 +81,8 @@ endif()
 
 if(BINDING STREQUAL "static")
 
+    find_package(doctest REQUIRED CONFIG)
+    
     enable_testing()
 
     file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
@@ -96,7 +98,7 @@ if(BINDING STREQUAL "static")
 
         target_include_directories(${test_name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
-        target_link_libraries(${test_name} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json mustache)
+        target_link_libraries(${test_name} spdlog::spdlog ZLIB::ZLIB glfw OpenGl32 nlohmann_json::nlohmann_json mustache doctest::doctest)
 
 
     endforeach()
